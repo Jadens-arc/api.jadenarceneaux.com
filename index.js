@@ -1,11 +1,20 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+
 
 const app = express();
 const port = 3000;
 
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded form data
+app.use(limiter);
 
 app.get('/', (req, res) => {
     res.send("Jaden's wonderful API. If you're here, you're definitely a little weird but I appreciate the spirit!");
