@@ -1,0 +1,21 @@
+{
+  "name": "api.jadenarceneaux.com",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodemon .",
+    "run": "express ."
+  },
+  "keywords": [],
+  "author": "Jaden Arceneaux",
+  "license": "ISC",
+  "description": "Backend for jadenarceneaux.com",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.0"
+  }
+}
