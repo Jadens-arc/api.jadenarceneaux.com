@@ -21,25 +21,49 @@ app.get('/', (req, res) => {
 });
 
 app.post('/forms/contact', (req, res) => {
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD
-        }
+    console.log(req.body)
+    const params = new URLSearchParams({
+        secret: process.env.RECAPTCHA_SECRET,
+        response: req.body['g-recaptcha-response'],
+        remoteip: req.ip,
     });
-    const mailOptions = {
-        from: process.env.EMAIL,
-        to: process.env.EMAIL,
-        subject: `[Form Submission] from ${req.body.name} - ${req.body.email}`,
-        text: req.body.message
-    };
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
-            res.redirect(req.headers.referer);
+
+    fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Recaptcha verified');
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD
+                }
+            });
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: process.env.EMAIL,
+                subject: `[Form Submission] from ${req.body.name} - ${req.body.email}`,
+                text: req.body.message
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error);
+                    res.redirect(req.headers.referer);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                    res.redirect(req.headers.referer);
+                }
+            });
         } else {
-            console.log('Email sent: ' + info.response);
+            console.log(data);
+            console.log('Recaptcha verification failed');
             res.redirect(req.headers.referer);
         }
     });
