@@ -22,23 +22,25 @@ app.get('/', (req, res) => {
 
 app.post('/forms/contact', (req, res) => {
     console.log(req.body)
-    const params = new URLSearchParams({
-        secret: process.env.RECAPTCHA_SECRET,
-        response: req.body['g-recaptcha-response'],
-        remoteip: req.ip,
-    });
+    const token = req.body['cf-turnstile-response'];
 
-    fetch('https://www.google.com/recaptcha/api/siteverify', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params
+    if (!token) {
+        return res.status(400).send("Please verify you're not a robot. <button onclick='window.history.back()'>Go back</button>");
+    }
+
+    const params = new URLSearchParams();
+    params.append('secret', process.env.TURNSTILE_SECRET_KEY);
+    params.append('response', token);
+
+    fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Recaptcha verified');
+            console.log('Verified');
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
@@ -62,11 +64,11 @@ app.post('/forms/contact', (req, res) => {
                 }
             });
         } else {
-            console.log(data);
-            console.log('Recaptcha verification failed');
-            res.redirect(req.headers.referer);
+            console.error('Verification errors:', data['error-codes']);
+            return res.status(400).send('Verification failed. Please try again.');
         }
     });
+
 });
 
 app.listen(port, () => {
