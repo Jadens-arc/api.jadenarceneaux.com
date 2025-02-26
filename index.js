@@ -42,15 +42,17 @@ app.post('/forms/contact', (req, res) => {
         if (data.success) {
             console.log('Verified');
             const transporter = nodemailer.createTransport({
-                service: 'gmail',
+                host: process.env.SMTP_SERVER,
+                port: process.env.SMTP_PORT,
+                secure: false, // upgrade later with STARTTLS
                 auth: {
-                    user: process.env.EMAIL,
-                    pass: process.env.PASSWORD
+                    user: process.env.SMTP_EMAIL,
+                    pass: process.env.SMTP_PASSWORD
                 }
             });
             const mailOptions = {
-                from: process.env.EMAIL,
-                to: process.env.EMAIL,
+                from: process.env.SMTP_EMAIL,
+                to: process.env.RECEIVER_EMAIL,
                 subject: `[Form Submission] from ${req.body.name} - ${req.body.email}`,
                 text: req.body.message
             };
