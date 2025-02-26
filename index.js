@@ -62,7 +62,7 @@ app.post('/forms/contact', (req, res) => {
                     res.redirect(req.headers.referer);
                 } else {
                     console.log('Email sent: ' + info.response);
-                    res.redirect(req.headers.referer);
+                    res.redirect(req.headers.referer + "?message-sent=true");
                 }
             });
         } else {
